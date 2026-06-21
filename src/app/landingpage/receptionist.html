@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athena University | Receptionist Portal</title>
+    <!-- We link to both the landing style variables and receptionist.css -->
+    <link rel="stylesheet" href="homedesign.css">
+    <link rel="stylesheet" href="receptionist.css">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="receptionist-body">
+    <div class="receptionist-layout">
+        <!-- SIDEBAR -->
+        <aside class="receptionist-sidebar">
+            <div>
+                <a href="home.html" class="sidebar-logo">
+                    <i class="fa-solid fa-graduation-cap"></i> ATHENA<span>DESK</span>
+                </a>
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="#dashboard" class="sidebar-link active" id="menuDash">
+                            <i class="fa-solid fa-chart-pie"></i> Desk Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#students" class="sidebar-link" id="menuStudents">
+                            <i class="fa-solid fa-graduation-cap"></i> Student Records
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#notices" class="sidebar-link" id="menuNotices">
+                            <i class="fa-solid fa-bullhorn"></i> Notice Board
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="btn btn-logout" id="receptionistLogoutBtn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout Desk
+                </button>
+            </div>
+        </aside>
+        <!-- MAIN CONTENT AREA -->
+        <main class="receptionist-main">
+            <!-- Header bar -->
+            <div class="receptionist-header">
+                <div class="receptionist-title">
+                    <h1>Receptionist Desk</h1>
+                    <p>Student search, outstanding tuition fees tracker, and campus notices desk.</p>
+                </div>
+                <div class="receptionist-profile">
+                    <div style="text-align: right;">
+                        <h4 style="font-weight: 700;">Front Desk Officer</h4>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary-light);"><i class="fa-solid fa-user-check"></i> Session: Active</span>
+                    </div>
+                    <div class="receptionist-avatar">FDO</div>
+                </div>
+            </div>
+            <!-- Stats Grid -->
+            <div class="dashboard-grid">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Total Outstanding Dues</span>
+                        <div class="dash-card-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                    </div>
+                    <div class="dash-card-value" id="statOutstandingDues">$0.00</div>
+                    <div class="dash-card-change negative"><i class="fa-solid fa-circle-exclamation"></i> Awaiting collection</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Total Paid Fees</span>
+                        <div class="dash-card-icon" style="background-color: rgba(13, 148, 136, 0.1); color: var(--primary-light);"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                    <div class="dash-card-value" id="statPaidFees" style="color: var(--primary-light);">$0.00</div>
+                    <div class="dash-card-change" style="color: var(--primary-light);"><i class="fa-solid fa-shield-heart"></i> Secured in account</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Enrolled Students</span>
+                        <div class="dash-card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-light);"><i class="fa-solid fa-user-graduate"></i></div>
+                    </div>
+                    <div class="dash-card-value" id="statEnrolledStudents" style="color: var(--text-primary-light);">0</div>
+                    <div class="dash-card-change" style="color: var(--text-secondary-light);"><i class="fa-solid fa-arrow-trend-up"></i> Fully approved students</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Active Notices</span>
+                        <div class="dash-card-icon" style="background-color: rgba(99, 102, 241, 0.1); color: #6366f1;"><i class="fa-solid fa-bullhorn"></i></div>
+                    </div>
+                    <div class="dash-card-value" id="statActiveNotices" style="color: #6366f1;">0</div>
+                    <div class="dash-card-change" style="color: #6366f1;"><i class="fa-solid fa-calendar-day"></i> Campus announcements</div>
+                </div>
+            </div>
+            <!-- Content Area split -->
+            <div class="content-section-grid" id="mainDashboardView">
+                
+                <!-- Left panel: Dues and Student data (Read-only) -->
+                <div class="receptionist-card">
+                    <div class="card-header-actions">
+                        <div class="receptionist-card-title">
+                            <span>Student Tuition Records</span>
+                        </div>
+                        <div class="search-bar">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="studentSearchInput" placeholder="Search student name or course...">
+                        </div>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Course Program</th>
+                                    <th>Contact No.</th>
+                                    <th>Total Fees</th>
+                                    <th>Paid Amount</th>
+                                    <th>Remaining Dues</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receptionistStudentsTableBody">
+                                <!-- Populated dynamically by receptionist.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Right panel: Notices bulletin (Read-only) -->
+                <div class="receptionist-card">
+                    <div class="receptionist-card-title">
+                        <span>Notice Bulletin</span>
+                        <span class="badge-status badge-info"><i class="fa-solid fa-building-columns"></i> Official</span>
+                    </div>
+                    <p style="color: var(--text-secondary-light); font-size: 0.85rem; margin-bottom: 1.5rem;">Recent administrative announcements broadcasted to the college.</p>
+                    
+                    <div class="notices-bulletin-container" id="noticesBulletinList">
+                        <!-- Populated dynamically by receptionist.js -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast-msg" id="toast">
+        <i class="fa-solid fa-circle-check" id="toastIcon"></i>
+        <span id="toastText">Action successful!</span>
+    </div>
+    <!-- We load receptionist.js for receptionist-specific rendering -->
+    <script src="receptionist.js"></script>
+</body>
+</html>
