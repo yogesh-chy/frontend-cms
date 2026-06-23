@@ -289,19 +289,7 @@ export default function HomePage() {
             <li><a href="#about" className="nav-link">About Us</a></li>
             <li><a href="#academics" className="nav-link">Academics</a></li>
             <li><a href="#admissions" className="nav-link">Admissions</a></li>
-            <li>
-              <a
-                href="#"
-                className="nav-link"
-                id="navAdminLoginBtn"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsAdminModalOpen(true);
-                }}
-              >
-                <i className="fa-solid fa-user-shield"></i> Admin/Staff Portal
-              </a>
-            </li>
+
           </ul>
           <div className="nav-actions">
             <button
