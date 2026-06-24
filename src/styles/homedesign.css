@@ -147,6 +147,17 @@ header {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
 }
+.btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--accent-light);
+    color: var(--accent-light);
+}
+.btn-secondary:hover {
+    background-color: var(--accent-light);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
 .btn-accent {
     background-color: var(--accent-light);
     color: #ffffff;
@@ -448,23 +459,29 @@ header {
 }
 /* --- ADMIN DASHBOARD PAGE (styles for admin.html) --- */
 .admin-body {
-    background-color: var(--bg-dark);
-    color: var(--text-primary-dark);
+    background-color: var(--bg-light);
+    color: var(--text-primary-light);
     font-family: var(--font-body);
 }
 .admin-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
     min-height: 100vh;
 }
 /* Sidebar */
 .admin-sidebar {
-    background-color: #0f1322;
-    border-right: 1px solid var(--border-dark);
+    background-color: #ffffff;
+    border-right: 1px solid var(--border-light);
     padding: 2rem 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 10;
+    overflow-y: auto;
 }
 .sidebar-logo {
     display: flex;
@@ -473,11 +490,11 @@ header {
     font-family: var(--font-heading);
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: var(--primary-light);
     margin-bottom: 3rem;
 }
 .sidebar-logo span {
-    color: #10b981;
+    color: var(--accent-light);
 }
 .sidebar-menu {
     list-style: none;
@@ -493,31 +510,43 @@ header {
     padding: 0.85rem 1rem;
     border-radius: var(--radius-sm);
     font-weight: 600;
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary-light);
     font-size: 0.95rem;
+    transition: var(--transition);
 }
 .sidebar-link:hover, .sidebar-link.active {
-    background-color: rgba(99, 102, 241, 0.1);
-    color: var(--primary-dark);
+    background-color: rgba(13, 148, 136, 0.08);
+    color: var(--primary-light);
 }
 .sidebar-footer {
-    border-top: 1px solid var(--border-dark);
+    border-top: 1px solid var(--border-light);
     padding-top: 1.5rem;
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+    z-index: 1;
+    margin-top: 1.5rem;
 }
 .btn-logout {
     width: 100%;
     justify-content: center;
-    background-color: rgba(239, 68, 68, 0.1);
+    background-color: rgba(239, 68, 68, 0.06);
     color: #ef4444;
 }
 .btn-logout:hover {
     background-color: #ef4444;
     color: white;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15);
 }
 /* Main Dashboard Area */
 .admin-main {
-    padding: 2rem 3rem;
-    overflow-y: auto;
+    position: relative;
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    padding: 6rem 3rem 3rem 3rem;
+    overflow-y: visible;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 .admin-header {
     display: flex;
@@ -527,10 +556,10 @@ header {
 }
 .admin-title h1 {
     font-size: 2rem;
-    color: var(--text-primary-dark);
+    color: var(--text-primary-light);
 }
 .admin-title p {
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary-light);
     font-size: 0.95rem;
 }
 .admin-profile {
@@ -542,7 +571,7 @@ header {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background-color: var(--primary-dark);
+    background-color: var(--primary-light);
     color: white;
     display: flex;
     justify-content: center;
@@ -558,9 +587,9 @@ header {
     margin-bottom: 2.5rem;
 }
 .dash-card {
-    background: var(--card-bg-dark);
+    background: var(--card-bg-light);
     backdrop-filter: blur(10px);
-    border: 1px solid var(--border-dark);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     padding: 1.5rem;
     display: flex;
@@ -576,15 +605,15 @@ header {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary-light);
     font-weight: 700;
 }
 .dash-card-icon {
     width: 38px;
     height: 38px;
     border-radius: var(--radius-sm);
-    background-color: rgba(99, 102, 241, 0.15);
-    color: var(--primary-dark);
+    background-color: rgba(13, 148, 136, 0.15);
+    color: var(--primary-light);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -593,7 +622,7 @@ header {
 .dash-card-value {
     font-size: 1.85rem;
     font-weight: 800;
-    color: var(--text-primary-dark);
+    color: var(--text-primary-light);
     font-family: var(--font-heading);
     margin-bottom: 0.5rem;
 }
@@ -611,18 +640,21 @@ header {
     grid-template-columns: 1.3fr 0.7fr;
     gap: 2rem;
     margin-bottom: 2.5rem;
+    align-items: stretch;
 }
 .admin-card {
-    background: var(--card-bg-dark);
+    background: var(--card-bg-light);
     backdrop-filter: blur(10px);
-    border: 1px solid var(--border-dark);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
 }
 .admin-card-title {
     font-size: 1.25rem;
     margin-bottom: 1.5rem;
-    color: var(--text-primary-dark);
+    color: var(--text-primary-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -630,25 +662,30 @@ header {
 /* Students Table */
 .data-table-container {
     overflow-x: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 .data-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+    flex: 1;
 }
 .data-table th {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-dark);
-    color: var(--text-secondary-dark);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary-light);
     font-weight: 700;
     font-size: 0.85rem;
     text-transform: uppercase;
 }
 .data-table td {
     padding: 1.25rem 1rem;
-    border-bottom: 1px solid var(--border-dark);
-    color: var(--text-primary-dark);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary-light);
     font-size: 0.9rem;
+    vertical-align: middle;
 }
 .badge-status {
     padding: 0.25rem 0.75rem;
@@ -673,6 +710,7 @@ header {
 .actions-cell {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 .btn-table-action {
     padding: 0.4rem 0.75rem;
@@ -715,13 +753,13 @@ header {
 .chart-bar {
     width: 100%;
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    background: linear-gradient(to top, var(--primary-dark), #818cf8);
+    background: linear-gradient(to top, var(--primary-light), #14b8a6);
     transition: height 1s ease-in-out;
 }
 .chart-label {
     margin-top: 0.5rem;
     font-size: 0.75rem;
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary-light);
 }
 /* Feed List styling */
 .feed-list {
@@ -739,20 +777,20 @@ header {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: rgba(99, 102, 241, 0.15);
-    color: var(--primary-dark);
+    background-color: rgba(13, 148, 136, 0.15);
+    color: var(--primary-light);
     display: flex;
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
 }
 .feed-content p {
-    color: var(--text-primary-dark);
+    color: var(--text-primary-light);
     font-weight: 500;
 }
 .feed-time {
     font-size: 0.75rem;
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary-light);
 }
 /* Utility alert boxes */
 .toast-msg {

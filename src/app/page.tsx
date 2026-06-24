@@ -94,7 +94,8 @@ const defaultDues: Due[] = [
 export default function HomePage() {
   // Modal & Tab States
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authTab, setAuthTab] = useState<"student" | "staff">("student");
   const [studentTab, setStudentTab] = useState<"login" | "register">("login");
 
   // Form States - Student Register
@@ -249,7 +250,7 @@ export default function HomePage() {
       triggerToast("Access granted. Redirecting to Administrator portal...", "success");
       setAdminUsername("");
       setAdminPassword("");
-      setIsAdminModalOpen(false);
+      setIsLoginModalOpen(false);
       setTimeout(() => {
         window.location.href = "/admin";
       }, 1000);
@@ -258,7 +259,7 @@ export default function HomePage() {
       triggerToast("Access granted. Redirecting to Receptionist portal...", "success");
       setAdminUsername("");
       setAdminPassword("");
-      setIsAdminModalOpen(false);
+      setIsLoginModalOpen(false);
       setTimeout(() => {
         window.location.href = "/receptionist";
       }, 1000);
@@ -267,7 +268,7 @@ export default function HomePage() {
       triggerToast("Access granted. Redirecting to Librarian portal...", "success");
       setAdminUsername("");
       setAdminPassword("");
-      setIsAdminModalOpen(false);
+      setIsLoginModalOpen(false);
       setTimeout(() => {
         window.location.href = "/librarian";
       }, 1000);
@@ -296,8 +297,8 @@ export default function HomePage() {
               className="btn btn-outline"
               id="navLoginBtn"
               onClick={() => {
-                setStudentTab("login");
-                setIsStudentModalOpen(true);
+                setAuthTab("student");
+                setIsLoginModalOpen(true);
               }}
             >
               Login
@@ -411,7 +412,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* STUDENT AUTHENTICATION MODAL */}
+      {/* STUDENT REGISTRATION MODAL */}
       {isStudentModalOpen && (
         <div
           className="modal-backdrop active"
@@ -423,23 +424,6 @@ export default function HomePage() {
           }}
         >
           <div className="modal-content">
-            <div className="modal-header-tabs">
-              <button
-                className={`tab-btn ${studentTab === "login" ? "active" : ""}`}
-                id="tabLoginBtn"
-                onClick={() => setStudentTab("login")}
-              >
-                Student Login
-              </button>
-              <button
-                className={`tab-btn ${studentTab === "register" ? "active" : ""}`}
-                id="tabRegisterBtn"
-                onClick={() => setStudentTab("register")}
-              >
-                Student Register
-              </button>
-            </div>
-
             <div className="modal-body">
               <button
                 className="modal-close"
@@ -449,10 +433,116 @@ export default function HomePage() {
                 <i className="fa-solid fa-xmark"></i>
               </button>
 
-              {/* LOGIN PANE */}
-              {studentTab === "login" && (
-                <div className="auth-pane active" id="loginPane">
-                  <h2 className="form-title">Welcome Back</h2>
+              <h2 className="form-title">Start Application</h2>
+              <p style={{ color: "var(--text-secondary-light)", marginBottom: "1.5rem" }}>
+                Create your applicant account to apply for admission and track your status.
+              </p>
+              <form id="studentRegisterForm" onSubmit={handleStudentRegister}>
+                <div className="form-group">
+                  <label htmlFor="studentRegName">Full Name</label>
+                  <input
+                    type="text"
+                    id="studentRegName"
+                    className="form-input"
+                    placeholder="John Doe"
+                    value={studentRegName}
+                    onChange={(e) => setStudentRegName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="studentRegEmail">Email Address</label>
+                  <input
+                    type="email"
+                    id="studentRegEmail"
+                    className="form-input"
+                    placeholder="name@domain.com"
+                    value={studentRegEmail}
+                    onChange={(e) => setStudentRegEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="studentRegCourse">Desired Program</label>
+                  <select
+                    id="studentRegCourse"
+                    className="form-input"
+                    value={studentRegCourse}
+                    onChange={(e) => setStudentRegCourse(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>Select a program</option>
+                    <option value="B.Sc. Computer Science">B.Sc. Computer Science</option>
+                    <option value="B.BA. Business Administration">B.BA. Business Administration</option>
+                    <option value="B.Eng. Mechanical Engineering">B.Eng. Mechanical Engineering</option>
+                    <option value="M.Sc. Data Science">M.Sc. Data Science</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="studentRegPassword">Create Password</label>
+                  <input
+                    type="password"
+                    id="studentRegPassword"
+                    className="form-input"
+                    placeholder="Min. 6 characters"
+                    value={studentRegPassword}
+                    onChange={(e) => setStudentRegPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <button type="submit" className="btn btn-accent" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
+                  Create Account & Apply <i className="fa-solid fa-user-plus"></i>
+                </button>
+              </form>
+              <div className="modal-footer-msg" style={{ marginTop: "1rem" }}>
+                Already have an account? Use the main Login button to access the staff/admin portal or contact admissions support.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LOGIN PORTAL MODAL */}
+      {isLoginModalOpen && (
+        <div
+          className="modal-backdrop active"
+          id="authLoginModal"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsLoginModalOpen(false);
+            }
+          }}
+        >
+          <div className="modal-content" style={{ maxWidth: "480px" }}>
+            <div className="modal-header-tabs">
+              <button
+                className={`tab-btn ${authTab === "student" ? "active" : ""}`}
+                onClick={() => setAuthTab("student")}
+              >
+                Student Login
+              </button>
+              <button
+                className={`tab-btn ${authTab === "staff" ? "active" : ""}`}
+                onClick={() => setAuthTab("staff")}
+              >
+                Staff Login
+              </button>
+            </div>
+            <div className="modal-body">
+              <button
+                className="modal-close"
+                onClick={() => setIsLoginModalOpen(false)}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+
+              {authTab === "student" && (
+                <div className="auth-pane active" id="studentLoginPane">
+                  <h2 className="form-title">Student Sign In</h2>
+                  <p style={{ color: "var(--text-secondary-light)", marginBottom: "1rem" }}>
+                    Login with your applicant email and password.
+                  </p>
                   <form id="studentLoginForm" onSubmit={handleStudentLogin}>
                     <div className="form-group">
                       <label htmlFor="studentLoginEmail">Email Address</label>
@@ -479,172 +569,64 @@ export default function HomePage() {
                       />
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
-                      Login to Portal <i className="fa-solid fa-right-to-bracket"></i>
+                      Login as Student <i className="fa-solid fa-right-to-bracket"></i>
                     </button>
                   </form>
-                  <div className="modal-footer-msg">
-                    New applicant?{" "}
-                    <a
-                      href="#"
-                      id="switchToRegister"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setStudentTab("register");
-                      }}
-                    >
-                      Register here
+                  <div className="modal-footer-msg" style={{ marginTop: "1rem" }}>
+                    No student account yet? <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginModalOpen(false); setIsStudentModalOpen(true); }}>
+                      Register to Apply
                     </a>
                   </div>
                 </div>
               )}
 
-              {/* REGISTER PANE */}
-              {studentTab === "register" && (
-                <div className="auth-pane active" id="registerPane">
-                  <h2 className="form-title">Start Application</h2>
-                  <form id="studentRegisterForm" onSubmit={handleStudentRegister}>
+              {authTab === "staff" && (
+                <div className="auth-pane active" id="staffLoginPane">
+                  <h2 className="form-title">Staff Portal</h2>
+                  <p style={{ color: "var(--text-secondary-light)", marginBottom: "1rem" }}>
+                    Login with your staff username and password.
+                  </p>
+                  <form id="adminLoginForm" onSubmit={handleAdminLogin}>
                     <div className="form-group">
-                      <label htmlFor="studentRegName">Full Name</label>
+                      <label htmlFor="adminUsername">Username</label>
                       <input
                         type="text"
-                        id="studentRegName"
+                        id="adminUsername"
                         className="form-input"
-                        placeholder="John Doe"
-                        value={studentRegName}
-                        onChange={(e) => setStudentRegName(e.target.value)}
+                        placeholder="admin, receptionist, librarian"
+                        value={adminUsername}
+                        onChange={(e) => setAdminUsername(e.target.value)}
                         required
                       />
                     </div>
                     <div className="form-group">
-                      <label htmlFor="studentRegEmail">Email Address</label>
-                      <input
-                        type="email"
-                        id="studentRegEmail"
-                        className="form-input"
-                        placeholder="name@domain.com"
-                        value={studentRegEmail}
-                        onChange={(e) => setStudentRegEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="studentRegCourse">Desired Program</label>
-                      <select
-                        id="studentRegCourse"
-                        className="form-input"
-                        value={studentRegCourse}
-                        onChange={(e) => setStudentRegCourse(e.target.value)}
-                        required
-                      >
-                        <option value="" disabled>Select a program</option>
-                        <option value="B.Sc. Computer Science">B.Sc. Computer Science</option>
-                        <option value="B.BA. Business Administration">B.BA. Business Administration</option>
-                        <option value="B.Eng. Mechanical Engineering">B.Eng. Mechanical Engineering</option>
-                        <option value="M.Sc. Data Science">M.Sc. Data Science</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="studentRegPassword">Create Password</label>
+                      <label htmlFor="adminPassword">Password</label>
                       <input
                         type="password"
-                        id="studentRegPassword"
+                        id="adminPassword"
                         className="form-input"
-                        placeholder="Min. 6 characters"
-                        value={studentRegPassword}
-                        onChange={(e) => setStudentRegPassword(e.target.value)}
+                        placeholder="••••••••"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
                         required
-                        minLength={6}
                       />
                     </div>
-                    <button type="submit" className="btn btn-accent" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
-                      Create Account & Apply <i className="fa-solid fa-user-plus"></i>
+                    <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1.5rem" }}>
+                      Login as Staff <i className="fa-solid fa-lock"></i>
                     </button>
                   </form>
-                  <div className="modal-footer-msg">
-                    Already have an account?{" "}
-                    <a
-                      href="#"
-                      id="switchToLogin"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setStudentTab("login");
-                      }}
-                    >
-                      Login here
-                    </a>
+                  <div style={{ marginTop: "1.25rem", fontSize: "0.8rem", color: "var(--text-secondary-light)", background: "var(--bg-light)", padding: "0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
+                    <div style={{ fontWeight: 700, marginBottom: "0.25rem", textAlign: "center", color: "var(--text-primary-light)" }}>
+                      <i className="fa-solid fa-circle-info"></i> Demo Credentials
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                      <span>• <strong>Admin</strong>: admin / admin123</span>
+                      <span>• <strong>Receptionist</strong>: receptionist / receptionist123</span>
+                      <span>• <strong>Librarian</strong>: librarian / librarian123</span>
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN / STAFF LOGIN MODAL */}
-      {isAdminModalOpen && (
-        <div
-          className="modal-backdrop active"
-          id="adminLoginModal"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setIsAdminModalOpen(false);
-            }
-          }}
-        >
-          <div className="modal-content" style={{ maxWidth: "420px" }}>
-            <div className="modal-body">
-              <button
-                className="modal-close"
-                id="closeAdminLoginModal"
-                onClick={() => setIsAdminModalOpen(false)}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-
-              <div style={{ textAlign: "center", marginBottom: "1.5rem", color: "var(--primary-light)" }}>
-                <i className="fa-solid fa-user-shield" style={{ fontSize: "2.5rem" }}></i>
-                <h2 className="form-title" style={{ marginTop: "0.5rem", marginBottom: 0 }}>Portal Login</h2>
-                <p style={{ color: "var(--text-secondary-light)", fontSize: "0.9rem" }}>Access administrative & staff portals</p>
-              </div>
-              <form id="adminLoginForm" onSubmit={handleAdminLogin}>
-                <div className="form-group">
-                  <label htmlFor="adminUsername">Username</label>
-                  <input
-                    type="text"
-                    id="adminUsername"
-                    className="form-input"
-                    placeholder="Enter username"
-                    value={adminUsername}
-                    onChange={(e) => setAdminUsername(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="adminPassword">Password</label>
-                  <input
-                    type="password"
-                    id="adminPassword"
-                    className="form-input"
-                    placeholder="••••••••"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1.5rem" }}>
-                  Secure Staff Login <i className="fa-solid fa-lock"></i>
-                </button>
-              </form>
-              <div style={{ marginTop: "1.25rem", fontSize: "0.8rem", color: "var(--text-secondary-light)", background: "var(--bg-light)", padding: "0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
-                <div style={{ fontWeight: 700, marginBottom: "0.25rem", textAlign: "center", color: "var(--text-primary-light)" }}>
-                  <i className="fa-solid fa-circle-info"></i> Demo Credentials
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                  <span>• <strong>Admin</strong>: admin / admin123</span>
-                  <span>• <strong>Receptionist</strong>: receptionist / receptionist123</span>
-                  <span>• <strong>Librarian</strong>: librarian / librarian123</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
