@@ -114,6 +114,10 @@ export default function HomePage() {
   // Toast States
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  // Footer States
+  const [footerEmail, setFooterEmail] = useState("");
+  const [subscribedEmails, setSubscribedEmails] = useState<string[]>([]);
+
   // Initialize System Data on Mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -140,6 +144,36 @@ export default function HomePage() {
     setTimeout(() => {
       setToast(null);
     }, 3000);
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("athena_newsletter");
+      if (saved) {
+        try {
+          setSubscribedEmails(JSON.parse(saved));
+        } catch (err) {
+          setSubscribedEmails([]);
+        }
+      }
+    }
+  }, []);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = footerEmail.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      triggerToast("Please enter a valid email address", "error");
+      return;
+    }
+    const updated = [...subscribedEmails, email];
+    setSubscribedEmails(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("athena_newsletter", JSON.stringify(updated));
+    }
+    setFooterEmail("");
+    triggerToast("Subscribed to newsletter — thank you!", "success");
   };
 
   const getApplicationsData = (): Application[] => {
@@ -300,7 +334,7 @@ export default function HomePage() {
                 setIsStudentModalOpen(true);
               }}
             >
-              Login
+              Signup
             </button>
             <button
               className="btn btn-primary"
@@ -310,7 +344,7 @@ export default function HomePage() {
                 setIsStudentModalOpen(true);
               }}
             >
-              Register to Apply
+              Get Started
             </button>
           </div>
         </div>
@@ -332,7 +366,7 @@ export default function HomePage() {
                   setIsStudentModalOpen(true);
                 }}
               >
-                <i className="fa-solid fa-pen-to-square"></i> Register & Apply Now
+                <i className="fa-solid fa-pen-to-square"></i> Register & apply now
               </button>
               <button
                 className="btn btn-outline"
@@ -479,7 +513,7 @@ export default function HomePage() {
                       />
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
-                      Login to Portal <i className="fa-solid fa-right-to-bracket"></i>
+                      Signup to Portal <i className="fa-solid fa-right-to-bracket"></i>
                     </button>
                   </form>
                   <div className="modal-footer-msg">
@@ -570,7 +604,7 @@ export default function HomePage() {
                         setStudentTab("login");
                       }}
                     >
-                      Login here
+                      Signup here
                     </a>
                   </div>
                 </div>
@@ -651,12 +685,49 @@ export default function HomePage() {
       )}
 
       {/* TOAST NOTIFICATION */}
+      {/* FOOTER */}
+      <footer className="site-footer" style={{ marginTop: "2rem", borderTop: "1px solid var(--border-light)", paddingTop: "1.5rem" }}>
+        <div className="container footer-grid" style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+          <div className="footer-col" style={{ flex: "1 1 220px" }}>
+            <h4>About Athena</h4>
+            <p style={{ color: "var(--text-secondary-light)" }}>World-class education, research, and student success.</p>
+            <div className="socials" style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              <a href="#" aria-label="Twitter"><i className="fa-brands fa-twitter"></i></a>
+              <a href="#" aria-label="Facebook"><i className="fa-brands fa-facebook"></i></a>
+              <a href="#" aria-label="LinkedIn"><i className="fa-brands fa-linkedin"></i></a>
+            </div>
+          </div>
+          <div className="footer-col" style={{ flex: "1 1 180px" }}>
+            <h4>Quick Links</h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <li><a href="#about">About</a></li>
+              <li><a href="#academics">Academics</a></li>
+              <li><a href="#admissions">Admissions</a></li>
+            </ul>
+          </div>
+          <div className="footer-col" style={{ flex: "1 1 260px" }}>
+            <h4>Newsletter</h4>
+            <form onSubmit={handleSubscribe} className="newsletter-form" style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              <input type="email" placeholder="Your email" value={footerEmail} onChange={(e) => setFooterEmail(e.target.value)} required style={{ flex: 1, padding: "0.5rem" }} />
+              <button type="submit" className="btn btn-accent">Subscribe</button>
+            </form>
+            <div style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>{subscribedEmails.length} subscribers</div>
+          </div>
+        </div>
+        <div className="footer-bottom" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem" }}>
+          <small>© Athena University 2026 · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></small>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <button className="btn btn-outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top</button>
+          </div>
+        </div>
+      
       {toast && (
         <div className={`toast-msg ${toast.type} show`} id="toast" style={{ borderLeft: toast.type === "success" ? "4px solid #0d9488" : "4px solid #ef4444" }}>
           <i className={toast.type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation"} id="toastIcon"></i>
           <span id="toastText">{toast.message}</span>
         </div>
       )}
+      </footer>
     </>
   );
 }

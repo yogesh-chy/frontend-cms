@@ -101,7 +101,7 @@ export default function ReceptionistPage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("receptionist_logged_in");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   if (!authorized) return null;

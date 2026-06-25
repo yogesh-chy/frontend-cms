@@ -95,7 +95,7 @@ export default function LibrarianPage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("librarian_logged_in");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   // Helper: Date & Overdue logic

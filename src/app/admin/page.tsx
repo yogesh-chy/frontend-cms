@@ -55,7 +55,7 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("admin_logged_in");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   const updateAppStatus = (id: number, newStatus: string) => {
