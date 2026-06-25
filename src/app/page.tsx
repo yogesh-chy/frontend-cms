@@ -561,10 +561,11 @@ export default function HomePage() {
                         required
                       />
                     </div>
-                    <div className="form-group">
+                    {/* <div className="form-group">
                       <label htmlFor="studentRegCourse">Desired Program</label>
                       <select
                         id="studentRegCourse"
+                        
                         className="form-input"
                         value={studentRegCourse}
                         onChange={(e) => setStudentRegCourse(e.target.value)}
@@ -576,7 +577,7 @@ export default function HomePage() {
                         <option value="B.Eng. Mechanical Engineering">B.Eng. Mechanical Engineering</option>
                         <option value="M.Sc. Data Science">M.Sc. Data Science</option>
                       </select>
-                    </div>
+                    </div> */}
                     <div className="form-group">
                       <label htmlFor="studentRegPassword">Create Password</label>
                       <input
