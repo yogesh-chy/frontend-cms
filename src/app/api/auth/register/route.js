@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { djangoFetch } from "@/lib/django";
+import { djangoFetch } from "../../../../../lib/django";
 
 export async function POST(req) {
   try {

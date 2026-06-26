@@ -95,7 +95,6 @@ export default function HomePage() {
   // Modal & Tab States
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [authTab, setAuthTab] = useState<"student" | "staff">("student");
   const [studentTab, setStudentTab] = useState<"login" | "register">("login");
 
   // Form States - Student Register
@@ -104,13 +103,9 @@ export default function HomePage() {
   const [studentRegCourse, setStudentRegCourse] = useState("");
   const [studentRegPassword, setStudentRegPassword] = useState("");
 
-  // Form States - Student Login
-  const [studentLoginEmail, setStudentLoginEmail] = useState("");
-  const [studentLoginPassword, setStudentLoginPassword] = useState("");
-
-  // Form States - Admin/Staff Login
-  const [adminUsername, setAdminUsername] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
+  // Unified Form States - Login (student or staff)
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   // Toast States
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -205,7 +200,7 @@ export default function HomePage() {
     // Switch to login tab and prefill email
     setTimeout(() => {
       setStudentTab("login");
-      setStudentLoginEmail(studentRegEmail);
+      setLoginEmail(studentRegEmail);
       // Clear registration form
       setStudentRegName("");
       setStudentRegEmail("");
@@ -213,67 +208,64 @@ export default function HomePage() {
       setStudentRegPassword("");
     }, 800);
   };
-
-  const handleStudentLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentLoginEmail || !studentLoginPassword) {
+    if (!loginEmail || !loginPassword) {
       triggerToast("Please enter email and password", "error");
       return;
     }
 
-    const db = getApplicationsData();
-    const student = db.find(app => app.email.toLowerCase() === studentLoginEmail.toLowerCase());
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
 
-    if (!student) {
-      triggerToast("No account found with this email. Please register.", "error");
-      return;
-    }
+      const data = await response.json();
 
-    if (student.password && student.password !== studentLoginPassword) {
-      triggerToast("Incorrect password. Please try again.", "error");
-      return;
-    }
+      if (!response.ok || !data.success) {
+        triggerToast(data.error || "Wrong email or password", "error");
+        return;
+      }
 
-    setIsStudentModalOpen(false);
-    setStudentLoginEmail("");
-    setStudentLoginPassword("");
+      const normalizedRole = String(data.role || "").toUpperCase();
+      const roleLabel = normalizedRole.toLowerCase();
 
-    setTimeout(() => {
-      alert(`Welcome back, ${student.name}!\n\nProgram: ${student.course}\nApplication Status: ${student.status.toUpperCase()}`);
-    }, 400);
-  };
+      if (normalizedRole === "STUDENT") {
+        sessionStorage.setItem("student_logged_in", "true");
+        triggerToast("Welcome back! Your student portal is ready.", "success");
+      } else if (normalizedRole === "ADMIN" || normalizedRole === "SUPER_ADMIN") {
+        sessionStorage.setItem("admin_logged_in", "true");
+        triggerToast("Access granted. Redirecting to the admin portal...", "success");
+        setTimeout(() => {
+          window.location.href = "/admin";
+        }, 800);
+      } else if (normalizedRole === "RECEPTION") {
+        sessionStorage.setItem("receptionist_logged_in", "true");
+        triggerToast("Access granted. Redirecting to the receptionist portal...", "success");
+        setTimeout(() => {
+          window.location.href = "/receptionist";
+        }, 800);
+      } else if (normalizedRole === "LIBRARIAN") {
+        sessionStorage.setItem("librarian_logged_in", "true");
+        triggerToast("Access granted. Redirecting to the librarian portal...", "success");
+        setTimeout(() => {
+          window.location.href = "/librarian";
+        }, 800);
+      } else {
+        sessionStorage.setItem("user_logged_in", "true");
+        triggerToast(`Welcome back. Redirecting to your ${roleLabel} portal...`, "success");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 800);
+      }
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminUsername === "admin" && adminPassword === "admin123") {
-      sessionStorage.setItem("admin_logged_in", "true");
-      triggerToast("Access granted. Redirecting to Administrator portal...", "success");
-      setAdminUsername("");
-      setAdminPassword("");
+      setLoginEmail("");
+      setLoginPassword("");
       setIsLoginModalOpen(false);
-      setTimeout(() => {
-        window.location.href = "/admin";
-      }, 1000);
-    } else if (adminUsername === "receptionist" && adminPassword === "receptionist123") {
-      sessionStorage.setItem("receptionist_logged_in", "true");
-      triggerToast("Access granted. Redirecting to Receptionist portal...", "success");
-      setAdminUsername("");
-      setAdminPassword("");
-      setIsLoginModalOpen(false);
-      setTimeout(() => {
-        window.location.href = "/receptionist";
-      }, 1000);
-    } else if (adminUsername === "librarian" && adminPassword === "librarian123") {
-      sessionStorage.setItem("librarian_logged_in", "true");
-      triggerToast("Access granted. Redirecting to Librarian portal...", "success");
-      setAdminUsername("");
-      setAdminPassword("");
-      setIsLoginModalOpen(false);
-      setTimeout(() => {
-        window.location.href = "/librarian";
-      }, 1000);
-    } else {
-      triggerToast("Invalid credentials! Please try again.", "error");
+    } catch {
+      triggerToast("Unable to reach the authentication service. Please try again.", "error");
     }
   };
 
@@ -297,11 +289,10 @@ export default function HomePage() {
               className="btn btn-outline"
               id="navLoginBtn"
               onClick={() => {
-                setAuthTab("student");
                 setIsLoginModalOpen(true);
               }}
             >
-              Login
+              Sign up
             </button>
             <button
               className="btn btn-primary"
@@ -311,7 +302,7 @@ export default function HomePage() {
                 setIsStudentModalOpen(true);
               }}
             >
-              Register to Apply
+              Get started
             </button>
           </div>
         </div>
@@ -515,20 +506,6 @@ export default function HomePage() {
           }}
         >
           <div className="modal-content" style={{ maxWidth: "480px" }}>
-            <div className="modal-header-tabs">
-              <button
-                className={`tab-btn ${authTab === "student" ? "active" : ""}`}
-                onClick={() => setAuthTab("student")}
-              >
-                Student Login
-              </button>
-              <button
-                className={`tab-btn ${authTab === "staff" ? "active" : ""}`}
-                onClick={() => setAuthTab("staff")}
-              >
-                Staff Login
-              </button>
-            </div>
             <div className="modal-body">
               <button
                 className="modal-close"
@@ -537,96 +514,46 @@ export default function HomePage() {
                 <i className="fa-solid fa-xmark"></i>
               </button>
 
-              {authTab === "student" && (
-                <div className="auth-pane active" id="studentLoginPane">
-                  <h2 className="form-title">Student Sign In</h2>
-                  <p style={{ color: "var(--text-secondary-light)", marginBottom: "1rem" }}>
-                    Login with your applicant email and password.
-                  </p>
-                  <form id="studentLoginForm" onSubmit={handleStudentLogin}>
-                    <div className="form-group">
-                      <label htmlFor="studentLoginEmail">Email Address</label>
-                      <input
-                        type="email"
-                        id="studentLoginEmail"
-                        className="form-input"
-                        placeholder="name@domain.com"
-                        value={studentLoginEmail}
-                        onChange={(e) => setStudentLoginEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="studentLoginPassword">Password</label>
-                      <input
-                        type="password"
-                        id="studentLoginPassword"
-                        className="form-input"
-                        placeholder="••••••••"
-                        value={studentLoginPassword}
-                        onChange={(e) => setStudentLoginPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
-                      Login as Student <i className="fa-solid fa-right-to-bracket"></i>
-                    </button>
-                  </form>
-                  <div className="modal-footer-msg" style={{ marginTop: "1rem" }}>
-                    No student account yet? <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginModalOpen(false); setIsStudentModalOpen(true); }}>
-                      Register to Apply
-                    </a>
+              <div className="auth-pane active" id="unifiedLoginPane">
+                <h2 className="form-title">Unified Sign In</h2>
+                <p style={{ color: "var(--text-secondary-light)", marginBottom: "1rem" }}>
+                  Use one portal to sign in as a student, staff member, or administrator.
+                </p>
+                <form id="unifiedLoginForm" onSubmit={handleLogin}>
+                  <div className="form-group">
+                    <label htmlFor="unifiedLoginEmail">Email Address</label>
+                    <input
+                      type="email"
+                      id="unifiedLoginEmail"
+                      className="form-input"
+                      placeholder="name@domain.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
                   </div>
-                </div>
-              )}
-
-              {authTab === "staff" && (
-                <div className="auth-pane active" id="staffLoginPane">
-                  <h2 className="form-title">Staff Portal</h2>
-                  <p style={{ color: "var(--text-secondary-light)", marginBottom: "1rem" }}>
-                    Login with your staff username and password.
-                  </p>
-                  <form id="adminLoginForm" onSubmit={handleAdminLogin}>
-                    <div className="form-group">
-                      <label htmlFor="adminUsername">Username</label>
-                      <input
-                        type="text"
-                        id="adminUsername"
-                        className="form-input"
-                        placeholder="admin, receptionist, librarian"
-                        value={adminUsername}
-                        onChange={(e) => setAdminUsername(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="adminPassword">Password</label>
-                      <input
-                        type="password"
-                        id="adminPassword"
-                        className="form-input"
-                        placeholder="••••••••"
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1.5rem" }}>
-                      Login as Staff <i className="fa-solid fa-lock"></i>
-                    </button>
-                  </form>
-                  <div style={{ marginTop: "1.25rem", fontSize: "0.8rem", color: "var(--text-secondary-light)", background: "var(--bg-light)", padding: "0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
-                    <div style={{ fontWeight: 700, marginBottom: "0.25rem", textAlign: "center", color: "var(--text-primary-light)" }}>
-                      <i className="fa-solid fa-circle-info"></i> Demo Credentials
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <span>• <strong>Admin</strong>: admin / admin123</span>
-                      <span>• <strong>Receptionist</strong>: receptionist / receptionist123</span>
-                      <span>• <strong>Librarian</strong>: librarian / librarian123</span>
-                    </div>
+                  <div className="form-group">
+                    <label htmlFor="unifiedLoginPassword">Password</label>
+                    <input
+                      type="password"
+                      id="unifiedLoginPassword"
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
                   </div>
+                  <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
+                    Sign In <i className="fa-solid fa-right-to-bracket"></i>
+                  </button>
+                </form>
+                <div className="modal-footer-msg" style={{ marginTop: "1rem" }}>
+                  New applicant? <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginModalOpen(false); setIsStudentModalOpen(true); }}>
+                    Create an application account
+                  </a>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

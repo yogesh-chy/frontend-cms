@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getValidAccessToken } from "@/lib/token";
-import { djangoFetch } from "@/lib/django";
+import { getValidAccessToken } from "../../../../lib/token";
+import { djangoFetch } from "../../../../lib/django";
 
 export async function GET() {
   try {
