@@ -62,13 +62,13 @@ export default function RegisterPage() {
     const dues = getDuesData();
     dues.push({ studentId: id, remaining: 3500, paid: 0, phone: "+1 (555) 01" + Math.floor(1000 + Math.random() * 9000) });
     saveDuesData(dues);
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   return (
     <main className="auth-page register-theme">
       <div className="auth-card">
-        <h1>Create Account & Apply</h1>
+        <h1>Register</h1>
         <p className="muted">Start your application to Athena University</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <label>Full name</label>
@@ -85,11 +85,11 @@ export default function RegisterPage() {
           </select>
           <label>Password</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-          <button className="btn">Register & Apply</button>
+          <button className="btn">Register</button>
         </form>
         {message && <div className="form-message">{message}</div>}
         <div className="auth-footer">
-          <a href="/login" className="link">Already have an account? Sign in</a>
+          <a href="/auth/login" className="link">Already have an account? Login</a>
         </div>
       </div>
     </main>
