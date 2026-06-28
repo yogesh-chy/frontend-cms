@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { djangoFetch } from "../../../lib/django";
-import { saveAuthCookies } from "../../../lib/token";
+import { djangoFetch } from "../../../../lib/django";
+import { saveAuthCookies } from "../../../../lib/token";
 
 export async function POST(req) {
   try {

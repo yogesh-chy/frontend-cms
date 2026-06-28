@@ -440,6 +440,32 @@ header {
     border-color: var(--primary-light);
     box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.form-grid-full {
+    grid-column: span 2;
+}
+.input-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-icon-wrapper i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-secondary-light);
+    transition: var(--transition);
+    pointer-events: none;
+}
+.input-icon-wrapper .form-input {
+    padding-left: 2.5rem;
+}
+.input-icon-wrapper .form-input:focus + i {
+    color: var(--primary-light);
+}
 .modal-footer-msg {
     margin-top: 1.5rem;
     text-align: center;

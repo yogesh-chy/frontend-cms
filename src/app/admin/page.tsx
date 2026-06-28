@@ -6,7 +6,7 @@ import "../../styles/homedesign.css";
 const DB_KEY = "athena_applications_db";
 
 interface Application {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   course: string;
@@ -17,6 +17,40 @@ export default function AdminPage() {
   const [authorized, setAuthorized] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      if (response.ok && data.success) {
+        const localAppsRaw = localStorage.getItem(DB_KEY);
+        const localApps: any[] = localAppsRaw ? JSON.parse(localAppsRaw) : [];
+        
+        const studentUsers = (data.results || data.users || []).filter(
+          (u: any) => u.role === "STUDENT"
+        );
+        
+        const mappedApps = studentUsers.map((u: any) => {
+          const localMatch = localApps.find(
+            (la) => la.email.toLowerCase() === u.email.toLowerCase()
+          );
+          return {
+            id: u.id,
+            name: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+            email: u.email,
+            course: localMatch ? localMatch.course : "B.Sc. Computer Science",
+            status: u.is_approved ? "Approved" : "Pending",
+          };
+        });
+        
+        setApplications(mappedApps);
+      } else {
+        triggerToast(data.error || "Failed to load students from backend.", "error");
+      }
+    } catch {
+      triggerToast("Error loading students from server.", "error");
+    }
+  };
 
   // Protection, Body Class and Initialization
   useEffect(() => {
@@ -33,10 +67,7 @@ export default function AdminPage() {
       document.body.className = "admin-body";
 
       // Load applications
-      const db = localStorage.getItem(DB_KEY);
-      if (db) {
-        setApplications(JSON.parse(db));
-      }
+      fetchUsers();
     }
 
     return () => {
@@ -58,7 +89,37 @@ export default function AdminPage() {
     window.location.href = "/";
   };
 
-  const updateAppStatus = (id: number, newStatus: string) => {
+  const updateAppStatus = async (id: number | string, newStatus: string) => {
+    if (newStatus === "Approved") {
+      try {
+        const response = await fetch(`/api/users/${id}/approve`, {
+          method: "POST",
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          triggerToast(data.error || "Failed to approve student on backend.", "error");
+          return;
+        }
+      } catch {
+        triggerToast("Failed to connect to backend for approval.", "error");
+        return;
+      }
+    } else if (newStatus === "Rejected") {
+      try {
+        const response = await fetch(`/api/users/${id}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          triggerToast(data.error || "Failed to delete student on backend.", "error");
+          return;
+        }
+      } catch {
+        triggerToast("Failed to connect to backend for rejection.", "error");
+        return;
+      }
+    }
+
     const updatedApps = applications.map(app => {
       if (app.id === id) {
         return { ...app, status: newStatus };
@@ -67,7 +128,23 @@ export default function AdminPage() {
     });
 
     setApplications(updatedApps);
-    localStorage.setItem(DB_KEY, JSON.stringify(updatedApps));
+    
+    // Also sync the status back to localStorage for consistency
+    const localAppsRaw = localStorage.getItem(DB_KEY);
+    if (localAppsRaw) {
+      const localApps: any[] = JSON.parse(localAppsRaw);
+      const targetApp = applications.find(a => a.id === id);
+      if (targetApp) {
+        const updatedLocal = localApps.map(la => {
+          if (la.email.toLowerCase() === targetApp.email.toLowerCase()) {
+            return { ...la, status: newStatus };
+          }
+          return la;
+        });
+        localStorage.setItem(DB_KEY, JSON.stringify(updatedLocal));
+      }
+    }
+    
     triggerToast(`Application successfully ${newStatus.toLowerCase()}!`, "success");
   };
 

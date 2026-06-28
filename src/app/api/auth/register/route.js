@@ -8,10 +8,17 @@ export async function POST(req) {
       method: "POST",
       body,
     });
-    return NextResponse.json({ success: true, user: data.user }, { status: 201 });
+
+    return NextResponse.json(
+      { success: true, user: data || null },
+      { status: 201 }
+    );
   } catch (err) {
     return NextResponse.json(
-      { errors: err.data || { error: "Registration failed" } },
+      {
+        success: false,
+        errors: err.data || { error: "Registration failed" },
+      },
       { status: err.status || 400 }
     );
   }

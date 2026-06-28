@@ -10,7 +10,7 @@ const BORROWINGS_KEY = "athena_borrowings_db";
 const CURRENT_DATE = new Date("2026-06-19"); // Fixed system current date
 
 interface Application {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   course: string;
@@ -57,6 +57,40 @@ export default function LibrarianPage() {
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      if (response.ok && data.success) {
+        const studentUsers = (data.results || data.users || []).filter(
+          (u: any) => u.role === "STUDENT"
+        );
+        const localAppsRaw = localStorage.getItem(APPLICATIONS_KEY);
+        const localApps: any[] = localAppsRaw ? JSON.parse(localAppsRaw) : [];
+        
+        const mappedStudents = studentUsers.map((u: any) => {
+          const localMatch = localApps.find(
+            (la) => la.email.toLowerCase() === u.email.toLowerCase()
+          );
+          return {
+            id: u.id,
+            name: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+            email: u.email,
+            course: localMatch ? localMatch.course : "B.Sc. Computer Science",
+            status: u.is_approved ? "Approved" : "Pending",
+          };
+        });
+        setStudents(mappedStudents);
+      } else {
+        const appsData = localStorage.getItem(APPLICATIONS_KEY);
+        if (appsData) setStudents(JSON.parse(appsData));
+      }
+    } catch {
+      const appsData = localStorage.getItem(APPLICATIONS_KEY);
+      if (appsData) setStudents(JSON.parse(appsData));
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const loggedIn = sessionStorage.getItem("librarian_logged_in");
@@ -75,8 +109,7 @@ export default function LibrarianPage() {
       const borrowingsData = localStorage.getItem(BORROWINGS_KEY);
       if (borrowingsData) setBorrowings(JSON.parse(borrowingsData));
 
-      const appsData = localStorage.getItem(APPLICATIONS_KEY);
-      if (appsData) setStudents(JSON.parse(appsData));
+      fetchStudents();
     }
 
     return () => {

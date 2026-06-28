@@ -100,6 +100,7 @@ export default function HomePage() {
   // Form States - Student Register
   const [studentRegName, setStudentRegName] = useState("");
   const [studentRegEmail, setStudentRegEmail] = useState("");
+  const [studentRegPhone, setStudentRegPhone] = useState("");
   const [studentRegCourse, setStudentRegCourse] = useState("");
   const [studentRegPassword, setStudentRegPassword] = useState("");
 
@@ -159,54 +160,78 @@ export default function HomePage() {
   };
 
   // Handlers
-  const handleStudentRegister = (e: React.FormEvent) => {
+  const handleStudentRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentRegName || !studentRegEmail || !studentRegCourse || !studentRegPassword) {
+    if (!studentRegName || !studentRegEmail || !studentRegPhone || !studentRegPassword) {
       triggerToast("Please fill in all fields", "error");
       return;
     }
 
-    const db = getApplicationsData();
-    if (db.some(app => app.email.toLowerCase() === studentRegEmail.toLowerCase())) {
-      triggerToast("An application with this email already exists!", "error");
-      return;
+    const nameParts = studentRegName.trim().split(/\s+/);
+    const firstName = nameParts[0] || studentRegName.trim();
+    const lastName = nameParts.slice(1).join(" ");
+    const username = `${(studentRegEmail.trim().split("@")[0] || "student").replace(/[^a-zA-Z0-9_.-]/g, "_")}_${Date.now().toString().slice(-4)}`;
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          email: studentRegEmail.trim(),
+          password: studentRegPassword,
+          first_name: firstName,
+          last_name: lastName,
+          phone: studentRegPhone.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        const backendError = data?.errors?.email?.[0] || data?.errors?.username?.[0] || data?.error || "Registration failed";
+        triggerToast(backendError, "error");
+        return;
+      }
+
+      const db = getApplicationsData();
+      if (!db.some(app => app.email.toLowerCase() === studentRegEmail.trim().toLowerCase())) {
+        const newId = Date.now();
+        const newApp: Application = {
+          id: newId,
+          name: studentRegName.trim(),
+          email: studentRegEmail.trim(),
+          status: "Pending",
+          password: studentRegPassword,
+        };
+
+        db.push(newApp);
+        saveApplicationsData(db);
+
+        const duesDb = getDuesData();
+        duesDb.push({
+          studentId: newId,
+          remaining: 3500.00,
+          paid: 0.00,
+          phone: studentRegPhone.trim() || ("+1 (555) 019-" + Math.floor(1000 + Math.random() * 9000)),
+        });
+        saveDuesData(duesDb);
+      }
+
+      triggerToast("Account created. Please verify your email and wait for super admin approval before signing in.", "success");
+
+      setTimeout(() => {
+        setLoginEmail(studentRegEmail.trim());
+        setIsStudentModalOpen(false);
+        setIsLoginModalOpen(true);
+        setStudentRegName("");
+        setStudentRegEmail("");
+        setStudentRegPhone("");
+        setStudentRegPassword("");
+      }, 800);
+    } catch {
+      triggerToast("Unable to reach the authentication service. Please try again.", "error");
     }
-
-    const newId = Date.now();
-    const newApp: Application = {
-      id: newId,
-      name: studentRegName,
-      email: studentRegEmail,
-      course: studentRegCourse,
-      status: "Pending",
-      password: studentRegPassword
-    };
-
-    db.push(newApp);
-    saveApplicationsData(db);
-
-    // Seed dues
-    const duesDb = getDuesData();
-    duesDb.push({
-      studentId: newId,
-      remaining: 3500.00,
-      paid: 0.00,
-      phone: "+1 (555) 019-" + Math.floor(1000 + Math.random() * 9000)
-    });
-    saveDuesData(duesDb);
-
-    triggerToast("Application submitted successfully! Please login.", "success");
-    
-    // Switch to login tab and prefill email
-    setTimeout(() => {
-      setStudentTab("login");
-      setLoginEmail(studentRegEmail);
-      // Clear registration form
-      setStudentRegName("");
-      setStudentRegEmail("");
-      setStudentRegCourse("");
-      setStudentRegPassword("");
-    }, 800);
   };
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -414,7 +439,7 @@ export default function HomePage() {
             }
           }}
         >
-          <div className="modal-content">
+          <div className="modal-content" style={{ maxWidth: "600px" }}>
             <div className="modal-body">
               <button
                 className="modal-close"
@@ -429,62 +454,72 @@ export default function HomePage() {
                 Create your applicant account to apply for admission and track your status.
               </p>
               <form id="studentRegisterForm" onSubmit={handleStudentRegister}>
-                <div className="form-group">
-                  <label htmlFor="studentRegName">Full Name</label>
-                  <input
-                    type="text"
-                    id="studentRegName"
-                    className="form-input"
-                    placeholder="John Doe"
-                    value={studentRegName}
-                    onChange={(e) => setStudentRegName(e.target.value)}
-                    required
-                  />
+                <div className="form-grid">
+                  <div className="form-group form-grid-full">
+                    <label htmlFor="studentRegName">Full Name</label>
+                    <div className="input-icon-wrapper">
+                      <input
+                        type="text"
+                        id="studentRegName"
+                        className="form-input"
+                        placeholder="John Doe"
+                        value={studentRegName}
+                        onChange={(e) => setStudentRegName(e.target.value)}
+                        required
+                      />
+                      <i className="fa-solid fa-user"></i>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="studentRegEmail">Email Address</label>
+                    <div className="input-icon-wrapper">
+                      <input
+                        type="email"
+                        id="studentRegEmail"
+                        className="form-input"
+                        placeholder="name@domain.com"
+                        value={studentRegEmail}
+                        onChange={(e) => setStudentRegEmail(e.target.value)}
+                        required
+                      />
+                      <i className="fa-solid fa-envelope"></i>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="studentRegPhone">Phone Number</label>
+                    <div className="input-icon-wrapper">
+                      <input
+                        type="tel"
+                        id="studentRegPhone"
+                        className="form-input"
+                        placeholder="+1 (555) 000-0000"
+                        value={studentRegPhone}
+                        onChange={(e) => setStudentRegPhone(e.target.value)}
+                        required
+                      />
+                      <i className="fa-solid fa-phone"></i>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="studentRegPassword">Create Password</label>
+                    <div className="input-icon-wrapper">
+                      <input
+                        type="password"
+                        id="studentRegPassword"
+                        className="form-input"
+                        placeholder="Min. 6 characters"
+                        value={studentRegPassword}
+                        onChange={(e) => setStudentRegPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                      <i className="fa-solid fa-lock"></i>
+                    </div>
+                  </div>
+                  <button type="submit" className="btn btn-accent form-grid-full" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
+                    Create Account & Apply <i className="fa-solid fa-user-plus"></i>
+                  </button>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="studentRegEmail">Email Address</label>
-                  <input
-                    type="email"
-                    id="studentRegEmail"
-                    className="form-input"
-                    placeholder="name@domain.com"
-                    value={studentRegEmail}
-                    onChange={(e) => setStudentRegEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="studentRegCourse">Desired Program</label>
-                  <select
-                    id="studentRegCourse"
-                    className="form-input"
-                    value={studentRegCourse}
-                    onChange={(e) => setStudentRegCourse(e.target.value)}
-                    required
-                  >
-                    <option value="" disabled>Select a program</option>
-                    <option value="B.Sc. Computer Science">B.Sc. Computer Science</option>
-                    <option value="B.BA. Business Administration">B.BA. Business Administration</option>
-                    <option value="B.Eng. Mechanical Engineering">B.Eng. Mechanical Engineering</option>
-                    <option value="M.Sc. Data Science">M.Sc. Data Science</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="studentRegPassword">Create Password</label>
-                  <input
-                    type="password"
-                    id="studentRegPassword"
-                    className="form-input"
-                    placeholder="Min. 6 characters"
-                    value={studentRegPassword}
-                    onChange={(e) => setStudentRegPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <button type="submit" className="btn btn-accent" style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}>
-                  Create Account & Apply <i className="fa-solid fa-user-plus"></i>
-                </button>
               </form>
               <div className="modal-footer-msg" style={{ marginTop: "1rem" }}>
                 Already have an account? Use the main Login button to access the staff/admin portal or contact admissions support.
