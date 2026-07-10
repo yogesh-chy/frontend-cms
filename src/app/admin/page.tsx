@@ -2,47 +2,62 @@
 
 import React, { useState, useEffect } from "react";
 import "../../styles/homedesign.css";
+import { Application } from "@/types/user";
+import { userService } from "@/services/user.service";
+import { authService } from "@/services/auth.service";
 
 const DB_KEY = "athena_applications_db";
-
-interface Application {
-  id: number;
-  name: string;
-  email: string;
-  course: string;
-  status: string;
-}
 
 export default function AdminPage() {
   const [authorized, setAuthorized] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  // Protection, Body Class and Initialization
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const loggedIn = sessionStorage.getItem("admin_logged_in");
-      if (loggedIn !== "true") {
-        alert("Access Denied: Please log in first.");
-        window.location.href = "/";
-        return;
+  const fetchUsers = async () => {
+    try {
+      const data = await userService.getUsers();
+      if (data && (data.results || data.users)) {
+        const localAppsRaw = localStorage.getItem(DB_KEY);
+        const localApps: any[] = localAppsRaw ? JSON.parse(localAppsRaw) : [];
+        
+        const studentUsers = (data.results || data.users || []).filter(
+          (u: any) => u.role === "STUDENT"
+        );
+        
+        const mappedApps = studentUsers.map((u: any) => {
+          const localMatch = localApps.find(
+            (la) => la.email.toLowerCase() === u.email.toLowerCase()
+          );
+          return {
+            id: u.id,
+            name: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+            email: u.email,
+            course: localMatch ? localMatch.course : "B.Sc. Computer Science",
+            status: u.is_approved ? "Approved" : "Pending",
+          };
+        });
+        
+        setApplications(mappedApps);
+      } else {
+        triggerToast(data.error || "Failed to load students from backend.", "error");
       }
-      setAuthorized(true);
-
-      // Add admin body class
-      document.body.className = "admin-body";
-
-      // Load applications
-      const db = localStorage.getItem(DB_KEY);
-      if (db) {
-        setApplications(JSON.parse(db));
-      }
+    } catch {
+      triggerToast("Error loading students from server.", "error");
     }
+  };
+
+  // Body Class and Initialization
+  useEffect(() => {
+    setAuthorized(true);
+
+    // Add admin body class
+    document.body.className = "admin-body";
+
+    // Load applications
+    fetchUsers();
 
     return () => {
-      if (typeof window !== "undefined") {
-        document.body.className = "";
-      }
+      document.body.className = "";
     };
   }, []);
 
@@ -53,12 +68,37 @@ export default function AdminPage() {
     }, 3000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logout();
     sessionStorage.removeItem("admin_logged_in");
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
-  const updateAppStatus = (id: number, newStatus: string) => {
+  const updateAppStatus = async (id: number | string, newStatus: string) => {
+    if (newStatus === "Approved") {
+      try {
+        const data = await userService.approveUser(id);
+        if (!data.success) {
+          triggerToast(data.error || "Failed to approve student on backend.", "error");
+          return;
+        }
+      } catch {
+        triggerToast("Failed to connect to backend for approval.", "error");
+        return;
+      }
+    } else if (newStatus === "Rejected") {
+      try {
+        const data = await userService.deleteUser(id);
+        if (!data.success) {
+          triggerToast(data.error || "Failed to delete student on backend.", "error");
+          return;
+        }
+      } catch {
+        triggerToast("Failed to connect to backend for rejection.", "error");
+        return;
+      }
+    }
+
     const updatedApps = applications.map(app => {
       if (app.id === id) {
         return { ...app, status: newStatus };
@@ -67,7 +107,23 @@ export default function AdminPage() {
     });
 
     setApplications(updatedApps);
-    localStorage.setItem(DB_KEY, JSON.stringify(updatedApps));
+    
+    // Also sync the status back to localStorage for consistency
+    const localAppsRaw = localStorage.getItem(DB_KEY);
+    if (localAppsRaw) {
+      const localApps: any[] = JSON.parse(localAppsRaw);
+      const targetApp = applications.find(a => a.id === id);
+      if (targetApp) {
+        const updatedLocal = localApps.map(la => {
+          if (la.email.toLowerCase() === targetApp.email.toLowerCase()) {
+            return { ...la, status: newStatus };
+          }
+          return la;
+        });
+        localStorage.setItem(DB_KEY, JSON.stringify(updatedLocal));
+      }
+    }
+    
     triggerToast(`Application successfully ${newStatus.toLowerCase()}!`, "success");
   };
 

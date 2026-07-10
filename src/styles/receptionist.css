@@ -4,8 +4,6 @@
     font-family: var(--font-body);
 }
 .receptionist-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
     min-height: 100vh;
 }
 /* Sidebar */
@@ -17,6 +15,13 @@
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 10;
+    overflow-y: auto;
 }
 .receptionist-sidebar .sidebar-logo {
     display: flex;
@@ -57,6 +62,11 @@
 .receptionist-sidebar .sidebar-footer {
     border-top: 1px solid var(--border-light);
     padding-top: 1.5rem;
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+    z-index: 1;
+    margin-top: 1.5rem;
 }
 .receptionist-sidebar .btn-logout {
     width: 100%;
@@ -71,6 +81,7 @@
 }
 /* Main Dashboard Area */
 .receptionist-main {
+    margin-left: 260px;
     padding: 2rem 3rem;
     overflow-y: auto;
 }

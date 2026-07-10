@@ -3,34 +3,14 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/homedesign.css";
 import "../../styles/receptionist.css";
+import { Application } from "@/types/user";
+import { Notice, Due } from "@/types/portal";
+import { userService } from "@/services/user.service";
+import { authService } from "@/services/auth.service";
 
 const DB_KEY = "athena_applications_db";
 const NOTICES_KEY = "athena_notices_db";
 const DUES_KEY = "athena_dues_db";
-
-interface Application {
-  id: number;
-  name: string;
-  email: string;
-  course: string;
-  status: string;
-  phone?: string;
-}
-
-interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-  priority: string;
-}
-
-interface Due {
-  studentId: number;
-  remaining: number;
-  paid: number;
-  phone: string;
-}
 
 export default function ReceptionistPage() {
   const [authorized, setAuthorized] = useState(false);
@@ -43,46 +23,68 @@ export default function ReceptionistPage() {
   // Search State
   const [studentSearch, setStudentSearch] = useState("");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const loggedIn = sessionStorage.getItem("receptionist_logged_in");
-      if (loggedIn !== "true") {
-        alert("Access Denied: Please log in first.");
-        window.location.href = "/";
-        return;
+  const fetchStudents = async (): Promise<Application[]> => {
+    try {
+      const data = await userService.getUsers();
+      if (data && (data.results || data.users)) {
+        const studentUsers = (data.results || data.users || []).filter(
+          (u: any) => u.role === "STUDENT"
+        );
+        const localAppsRaw = localStorage.getItem(DB_KEY);
+        const localApps: any[] = localAppsRaw ? JSON.parse(localAppsRaw) : [];
+        
+        const mappedStudents: Application[] = studentUsers.map((u: any) => {
+          const localMatch = localApps.find(
+            (la) => la.email.toLowerCase() === u.email.toLowerCase()
+          );
+          return {
+            id: u.id,
+            name: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+            email: u.email,
+            course: localMatch ? localMatch.course : "B.Sc. Computer Science",
+            status: u.is_approved ? "Approved" : "Pending",
+            phone: u.phone || "",
+          };
+        });
+        setApplications(mappedStudents);
+        return mappedStudents;
       }
-      setAuthorized(true);
-      document.body.className = "receptionist-body";
+    } catch {
+      // Fallback
+    }
+    const appsData = localStorage.getItem(DB_KEY);
+    const activeApps: Application[] = appsData ? JSON.parse(appsData) : [];
+    setApplications(activeApps);
+    return activeApps;
+  };
 
-      // Load data
-      const appsData = localStorage.getItem(DB_KEY);
-      const activeApps: Application[] = appsData ? JSON.parse(appsData) : [];
-      setApplications(activeApps);
+  useEffect(() => {
+    setAuthorized(true);
+    document.body.className = "receptionist-body";
 
-      const noticesData = localStorage.getItem(NOTICES_KEY);
-      if (noticesData) setNotices(JSON.parse(noticesData));
+    const noticesData = localStorage.getItem(NOTICES_KEY);
+    if (noticesData) setNotices(JSON.parse(noticesData));
 
+    // Fetch students first, then load/seed dues
+    fetchStudents().then((activeApps) => {
       const duesData = localStorage.getItem(DUES_KEY);
       let activeDues: Due[] = duesData ? JSON.parse(duesData) : [];
 
-      // Seed dues dynamically if approved students do not have profile yet
-      const approvedStudents = activeApps.filter(app => app.status === "Approved");
-      let updatedDuesList = [...activeDues];
-      let duesMap = new Map<number, Due>();
-      activeDues.forEach(d => duesMap.set(Number(d.studentId), d));
-
       let changed = false;
-      approvedStudents.forEach(student => {
-        if (!duesMap.has(Number(student.id))) {
-          const seededDue: Due = {
-            studentId: student.id,
-            remaining: parseFloat((1000 + Math.random() * 2000).toFixed(2)),
-            paid: parseFloat((1500 + Math.random() * 1500).toFixed(2)),
-            phone: student.phone || `+1 (555) 01${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 9000)}`
-          };
-          updatedDuesList.push(seededDue);
-          duesMap.set(student.id, seededDue);
-          changed = true;
+      const updatedDuesList = [...activeDues];
+
+      activeApps.forEach((app) => {
+        if (app.status === "Approved") {
+          const exists = updatedDuesList.some((d) => String(d.studentId) === String(app.id));
+          if (!exists) {
+            updatedDuesList.push({
+              studentId: app.id,
+              remaining: 3500.0,
+              paid: 0.0,
+              phone: app.phone || "+1 (555) 019-" + Math.floor(1000 + Math.random() * 9000),
+            });
+            changed = true;
+          }
         }
       });
 
@@ -90,18 +92,17 @@ export default function ReceptionistPage() {
         localStorage.setItem(DUES_KEY, JSON.stringify(updatedDuesList));
       }
       setDues(updatedDuesList);
-    }
+    });
 
     return () => {
-      if (typeof window !== "undefined") {
-        document.body.className = "";
-      }
+      document.body.className = "";
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logout();
     sessionStorage.removeItem("receptionist_logged_in");
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   if (!authorized) return null;
@@ -113,11 +114,11 @@ export default function ReceptionistPage() {
   let totalOutstanding = 0;
   let totalPaid = 0;
 
-  const duesMap = new Map<number, Due>();
-  dues.forEach(d => duesMap.set(Number(d.studentId), d));
+  const duesMap = new Map<string | number, Due>();
+  dues.forEach(d => duesMap.set(d.studentId, d));
 
   activeStudents.forEach(student => {
-    const studentDues = duesMap.get(Number(student.id));
+    const studentDues = duesMap.get(student.id);
     if (studentDues) {
       totalOutstanding += studentDues.remaining;
       totalPaid += studentDues.paid;
@@ -277,7 +278,7 @@ export default function ReceptionistPage() {
                 </thead>
                 <tbody id="receptionistStudentsTableBody">
                   {filteredStudents.map(student => {
-                    const studentDues = duesMap.get(Number(student.id));
+                    const studentDues = duesMap.get(student.id);
                     if (!studentDues) return null;
 
                     const hasDues = studentDues.remaining > 0;

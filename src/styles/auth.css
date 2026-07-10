@@ -1,0 +1,303 @@
+/* ===== AUTH PAGES — Modern Split Layout ===== */
+.auth-page-container {
+    min-height: 100vh;
+    display: flex;
+    background-color: #ffffff;
+    font-family: var(--font-body);
+    position: relative;
+}
+
+/* Floating top logo header */
+.auth-logo-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem 2.5rem;
+    z-index: 10;
+}
+
+.auth-logo-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary-light);
+}
+
+.auth-logo-header .logo span {
+    color: var(--accent-light);
+}
+
+/* Left panel (Graphics) */
+.auth-graphic-side {
+    flex: 1.2;
+    background: linear-gradient(135deg, #0f766e, #0d9488, #4f46e5);
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Floating decorative shapes */
+.graphic-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+
+.bubble-1 { width: 300px; height: 300px; top: -50px; right: -50px; }
+.bubble-2 { width: 200px; height: 200px; bottom: -50px; left: -50px; }
+
+/* Graphic card details */
+.auth-graphic-content {
+    position: relative;
+    z-index: 2;
+    max-width: 460px;
+}
+
+.auth-graphic-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.5px;
+}
+
+.auth-graphic-text {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+/* Glassmorphism mockup UI card for stats graphic */
+.auth-stats-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+    animation: authGraphicSlide 0.8s ease-out forwards;
+}
+
+@keyframes authGraphicSlide {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.stats-card-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.stats-card-badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    padding: 0.25rem 0.5rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Right panel (Form) */
+.auth-form-side {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem 2rem 2rem;
+    background-color: #ffffff;
+    z-index: 2;
+    position: relative;
+}
+
+.auth-form-wrapper {
+    width: 100%;
+    max-width: 380px;
+    animation: authFormFadeIn 0.6s ease-out forwards;
+}
+
+@keyframes authFormFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    color: var(--text-primary-light);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+/* Form group overrides for wrapper */
+.auth-form-wrapper .form-group {
+    margin-bottom: 0.85rem;
+}
+
+.auth-form-wrapper .form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary-light);
+}
+
+.auth-form-wrapper .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-primary-light);
+    background-color: var(--bg-light);
+    transition: var(--transition);
+}
+
+.auth-form-wrapper .form-input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+    outline: none;
+    background-color: #ffffff;
+}
+
+.auth-form-wrapper select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25rem 1.25rem;
+    padding-right: 2.5rem;
+}
+
+/* Password wrapper */
+.auth-password-wrapper {
+    position: relative;
+}
+
+.auth-password-wrapper .form-input {
+    padding-right: 2.75rem;
+}
+
+.auth-password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+    padding: 0;
+}
+
+.auth-password-toggle:hover {
+    color: var(--primary-light);
+}
+
+/* Forgot password link */
+.auth-forgot-link {
+    display: block;
+    text-align: right;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--primary-light);
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.auth-forgot-link:hover {
+    color: var(--primary-hover-light);
+}
+
+/* Footer message */
+.auth-footer-msg {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+    color: var(--text-secondary-light);
+}
+
+.auth-footer-msg a {
+    color: var(--primary-light);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.auth-footer-msg a:hover {
+    color: var(--primary-hover-light);
+}
+
+/* Roles info box */
+.auth-roles-badge {
+    margin-top: 1rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary-light);
+    text-align: center;
+}
+
+/* Submit button effects */
+.auth-form-wrapper .btn-primary {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.auth-form-wrapper .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.2);
+}
+
+.auth-form-wrapper .btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Responsive constraints */
+@media (max-width: 950px) {
+    .auth-graphic-side {
+        display: none;
+    }
+    .auth-form-side {
+        flex: 1;
+        padding: 7rem 1.5rem 3rem 1.5rem;
+    }
+    .auth-logo-header {
+        padding: 1.5rem;
+    }
+}

@@ -3,37 +3,15 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/homedesign.css";
 import "../../styles/librarian.css";
+import { Application } from "@/types/user";
+import { Book, Borrowing } from "@/types/portal";
+import { userService } from "@/services/user.service";
+import { authService } from "@/services/auth.service";
 
 const APPLICATIONS_KEY = "athena_applications_db";
 const BOOKS_KEY = "athena_books_db";
 const BORROWINGS_KEY = "athena_borrowings_db";
 const CURRENT_DATE = new Date("2026-06-19"); // Fixed system current date
-
-interface Application {
-  id: number;
-  name: string;
-  email: string;
-  course: string;
-  status: string;
-}
-
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  total: number;
-  available: number;
-  price: number;
-}
-
-interface Borrowing {
-  id: number;
-  studentName: string;
-  bookTitle: string;
-  borrowDate: string;
-  dueDate: string;
-  status: string;
-}
 
 export default function LibrarianPage() {
   const [authorized, setAuthorized] = useState(false);
@@ -57,32 +35,54 @@ export default function LibrarianPage() {
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const loggedIn = sessionStorage.getItem("librarian_logged_in");
-      if (loggedIn !== "true") {
-        alert("Access Denied: Please log in first.");
-        window.location.href = "/";
-        return;
+  const fetchStudents = async () => {
+    try {
+      const data = await userService.getUsers();
+      if (data && (data.results || data.users)) {
+        const studentUsers = (data.results || data.users || []).filter(
+          (u: any) => u.role === "STUDENT"
+        );
+        const localAppsRaw = localStorage.getItem(APPLICATIONS_KEY);
+        const localApps: any[] = localAppsRaw ? JSON.parse(localAppsRaw) : [];
+        
+        const mappedStudents = studentUsers.map((u: any) => {
+          const localMatch = localApps.find(
+            (la) => la.email.toLowerCase() === u.email.toLowerCase()
+          );
+          return {
+            id: u.id,
+            name: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+            email: u.email,
+            course: localMatch ? localMatch.course : "B.Sc. Computer Science",
+            status: u.is_approved ? "Approved" : "Pending",
+          };
+        });
+        setStudents(mappedStudents);
+      } else {
+        const appsData = localStorage.getItem(APPLICATIONS_KEY);
+        if (appsData) setStudents(JSON.parse(appsData));
       }
-      setAuthorized(true);
-      document.body.className = "librarian-body";
-
-      // Load data
-      const booksData = localStorage.getItem(BOOKS_KEY);
-      if (booksData) setBooks(JSON.parse(booksData));
-
-      const borrowingsData = localStorage.getItem(BORROWINGS_KEY);
-      if (borrowingsData) setBorrowings(JSON.parse(borrowingsData));
-
+    } catch {
       const appsData = localStorage.getItem(APPLICATIONS_KEY);
       if (appsData) setStudents(JSON.parse(appsData));
     }
+  };
+
+  useEffect(() => {
+    setAuthorized(true);
+    document.body.className = "librarian-body";
+
+    // Load data
+    fetchStudents();
+
+    const booksData = localStorage.getItem(BOOKS_KEY);
+    if (booksData) setBooks(JSON.parse(booksData));
+
+    const borrowsData = localStorage.getItem(BORROWINGS_KEY);
+    if (borrowsData) setBorrowings(JSON.parse(borrowsData));
 
     return () => {
-      if (typeof window !== "undefined") {
-        document.body.className = "";
-      }
+      document.body.className = "";
     };
   }, []);
 
@@ -93,9 +93,10 @@ export default function LibrarianPage() {
     }, 3000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logout();
     sessionStorage.removeItem("librarian_logged_in");
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   // Helper: Date & Overdue logic
